@@ -2,8 +2,9 @@ import keyboard
 import cv2
 import numpy as np
 import pyautogui
-import pydirectinput
 import time
+import win32api
+import win32con
 # https://www.gamesgames.com/game/magic-piano-tiles
 
 GAME_OFFSET_X = 0
@@ -55,7 +56,7 @@ def start_game():
   min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
   if max_val > 0.80:
     start_button_center = (max_loc[0] + start_button.shape[1] / 2, max_loc[1] + start_button.shape[0] / 2)
-    click_location(start_button_center[0], start_button_center[1], 0.5)
+    click_location(start_button_center[0], start_button_center[1])
     board_loc = get_game_pos()
     run_bot(board_loc)
   else:
@@ -82,9 +83,11 @@ def get_tile_pos(game_pos):
     print(f"Tiles found: {tiles}")
   return sorted(tiles, key=lambda x: x[1], reverse=True) # Sort by lowest y-coordinate (Priority to click)
   
-def click_location(x, y, duration):
-  pyautogui.moveTo(x, y, duration)
-  pydirectinput.click()
+def click_location(x, y):
+  win32api.SetCursorPos((int(x), int(y)))
+  win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0)
+  time.sleep(0.01)
+  win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0)
 
 def run_bot(game_pos):
   while True:
@@ -92,7 +95,7 @@ def run_bot(game_pos):
     if tiles:
       x = tiles[0][0]+GAME_OFFSET_X+TILE_WIDTH/2
       y = tiles[0][1]+GAME_OFFSET_Y+TILE_HEIGHT/2
-      click_location(x, y, 0)
+      click_location(x, y)
     if keyboard.is_pressed('q'):
       break
 
